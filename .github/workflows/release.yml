@@ -47,8 +47,12 @@ jobs:
       - name: Build native image
         shell: bash
         run: |
-          # Create classpath
-          CLASSPATH=$(clojure -Spath)
+          # Compile Clojure code
+          mkdir -p classes
+          clojure -M -e "(compile 'sync)"
+          
+          # Create classpath including compiled classes
+          CLASSPATH="classes:$(clojure -Spath)"
           
           # Build native image
           native-image \

@@ -1,0 +1,23 @@
+{
+  "name": "cordsync",
+  "version": "1.0.0",
+  "description": "Sync values between configuration files",
+  "bin": {
+    "cordsync": "./dist/cordsync"
+  },
+  "scripts": {
+    "test": "echo \"No tests yet\"",
+    "postinstall": "node install.js"
+  },
+  "keywords": ["config", "sync", "cli"],
+  "author": "",
+  "license": "MIT",
+  "files": [
+    "dist/",
+    "src/",
+    "install.js",
+    "deps.edn"
+  ],
+  "os": ["darwin", "linux", "win32"],
+  "cpu": ["x64", "arm64"]
+}

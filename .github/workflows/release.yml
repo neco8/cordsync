@@ -10,21 +10,19 @@ jobs:
     strategy:
       matrix:
         include:
-          # Linux
+          # Linux x64
           - os: ubuntu-latest
             target: linux-x64
             runs-on: ubuntu-latest
-          - os: ubuntu-latest
-            target: linux-arm64
-            runs-on: ubuntu-latest
-          # macOS
-          - os: macos-latest
+          # macOS x64
+          - os: macos-13
             target: darwin-x64
-            runs-on: macos-latest
+            runs-on: macos-13
+          # macOS arm64
           - os: macos-latest
             target: darwin-arm64
             runs-on: macos-latest
-          # Windows
+          # Windows x64
           - os: windows-latest
             target: windows-x64
             runs-on: windows-latest
@@ -39,7 +37,6 @@ jobs:
         with:
           distribution: graalvm-community
           java-version: '24.0.2'
-          components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Setup Clojure

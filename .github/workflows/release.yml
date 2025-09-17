@@ -47,21 +47,16 @@ jobs:
       - name: Build native image
         shell: bash
         run: |
-          # Compile Clojure code
-          mkdir -p classes
-          clojure -M -e "(compile 'sync)"
+          # Build uberjar
+          clojure -T:build uber
           
-          # Create classpath including compiled classes
-          CLASSPATH="classes:$(clojure -Spath)"
-          
-          # Build native image
+          # Build native image from uberjar
           native-image \
-            -cp "$CLASSPATH" \
+            -jar target/cordsync.jar \
             --no-fallback \
             --initialize-at-build-time \
             -H:Name=cordsync-${{ matrix.target }} \
-            -H:+ReportExceptionStackTraces \
-            sync
+            -H:+ReportExceptionStackTraces
       
       - name: Test binary (Unix)
         if: runner.os != 'Windows'

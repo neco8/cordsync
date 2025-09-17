@@ -55,7 +55,8 @@ jobs:
         run: |
           clojure -T:build uber
       
-      - name: Build native image
+      - name: Build native image (Unix)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           native-image \
@@ -63,6 +64,17 @@ jobs:
             --no-fallback \
             --initialize-at-build-time \
             -H:Name=cordsync-${{ matrix.target }} \
+            -H:+ReportExceptionStackTraces
+      
+      - name: Build native image (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          native-image `
+            -jar target/cordsync.jar `
+            --no-fallback `
+            --initialize-at-build-time `
+            -H:Name=cordsync-${{ matrix.target }} `
             -H:+ReportExceptionStackTraces
       
       - name: Test binary (Unix)

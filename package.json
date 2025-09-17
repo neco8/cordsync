@@ -1,6 +1,6 @@
 {
   "name": "cordsync",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Sync values between configuration files",
   "bin": {
     "cordsync": "./dist/cordsync"

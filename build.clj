@@ -2,7 +2,7 @@
   (:require [clojure.tools.build.api :as b]))
 
 (def lib 'cordsync)
-(def version "1.0.6")
+(def version "1.0.7")
 (def class-dir "target/classes")
 (def jar-file (format "target/%s.jar" (name lib)))
 

@@ -46,8 +46,6 @@ function getPlatform() {
 // Download file from URL
 function download(url, dest) {
   return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(dest);
-    
     https.get(url, (response) => {
       if (response.statusCode === 302 || response.statusCode === 301) {
         // Handle redirect
@@ -60,13 +58,20 @@ function download(url, dest) {
         return;
       }
       
+      // Only create file after confirming 200 status
+      const file = fs.createWriteStream(dest);
+      
       response.pipe(file);
       
       file.on('finish', () => {
         file.close(resolve);
       });
+      
+      file.on('error', (err) => {
+        fs.unlink(dest, () => {}); // Delete the file on error
+        reject(err);
+      });
     }).on('error', (err) => {
-      fs.unlink(dest, () => {}); // Delete the file on error
       reject(err);
     });
   });
@@ -98,7 +103,7 @@ async function install() {
     
     // Make executable on Unix
     if (process.platform !== 'win32') {
-      fs.chmodSync(binaryPath, '755');
+      fs.chmodSync(binaryPath, 0o755);
     }
     
     console.log('Installation complete!');

@@ -44,13 +44,20 @@ jobs:
         with:
           cli: latest
       
+      - name: Build uberjar (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          clojure -T:build uber
+      
+      - name: Build uberjar (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          clojure -T:build uber
+      
       - name: Build native image
         shell: bash
         run: |
-          # Build uberjar
-          clojure -T:build uber
-          
-          # Build native image from uberjar
           native-image \
             -jar target/cordsync.jar \
             --no-fallback \

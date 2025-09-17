@@ -1,0 +1,124 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          # Linux x64
+          - os: ubuntu-latest
+            target: linux-x64
+            runs-on: ubuntu-latest
+          # Linux arm64
+          - os: ubuntu-22.04-arm
+            target: linux-arm64
+            runs-on: ubuntu-22.04-arm
+          # macOS x64
+          - os: macos-13
+            target: darwin-x64
+            runs-on: macos-13
+          # macOS arm64
+          - os: macos-latest
+            target: darwin-arm64
+            runs-on: macos-latest
+          # Windows x64
+          - os: windows-latest
+            target: windows-x64
+            runs-on: windows-latest
+    
+    runs-on: ${{ matrix.runs-on }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          distribution: graalvm-community
+          java-version: '24.0.2'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@12.5
+        with:
+          cli: latest
+      
+      - name: Build uberjar (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          clojure -T:build uber
+      
+      - name: Build uberjar (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          clojure -T:build uber
+      
+      - name: Build native image
+        shell: bash
+        run: |
+          native-image \
+            -jar target/cordsync.jar \
+            --no-fallback \
+            --initialize-at-build-time \
+            -H:Name=cordsync-${{ matrix.target }} \
+            -H:+ReportExceptionStackTraces
+      
+      - name: Test binary (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          ./cordsync-${{ matrix.target }} --help
+      
+      - name: Test binary (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          ./cordsync-${{ matrix.target }}.exe --help
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cordsync-${{ matrix.target }}
+          path: |
+            cordsync-${{ matrix.target }}
+            cordsync-${{ matrix.target }}.exe
+  
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+      
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      
+      - name: Upload Release Assets
+        run: |
+          for artifact in cordsync-*; do
+            if [ -d "$artifact" ]; then
+              cd "$artifact"
+              for file in *; do
+                echo "Uploading $file"
+                gh release upload ${{ github.ref_name }} "$file" --clobber
+              done
+              cd ..
+            fi
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

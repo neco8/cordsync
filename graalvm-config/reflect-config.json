@@ -1,0 +1,6 @@
+[
+  {
+    "name": "sync",
+    "methods": [{"name": "-main", "parameterTypes": ["java.lang.String[]"]}]
+  }
+]
